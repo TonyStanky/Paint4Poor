@@ -8,21 +8,28 @@ import javafx.event.*;
 import javafx.scene.input.*;
 import javafx.scene.paint.Color;
 
+import javafx.animation.*;
+import javafx.application.*;
+import javafx.scene.*;
+import javafx.stage.*;
+
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 
 public class Paint4Poor2022 extends Application {
   // Anfang Attribute
-  private Pane root;                // global definiert für späteren Zugriff
+  private Pane root;                // global definiert fÃ¼r spÃ¤teren Zugriff
   private Pixel[][] leinwand;       // Ein Array aus erweiterten Buttons
   private Color[][] bild;           // Ein reines Farb-Array
-  private String grundStyle = "-fx-border-width: 0;-fx-background-radius: 0;-fx-border-color:LIGHTGRAY;-fx-border-insets: 0;-fx-border-radius: 0;"; // für alle Pixel 
+  private String grundStyle = "-fx-border-width: 0;-fx-background-radius: 0;-fx-border-color:LIGHTGRAY;-fx-border-insets: 0;-fx-border-radius: 0;"; // fÃ¼r alle Pixel 
   private Color aktuelleFarbe = Color.BLACK; 
   private ToggleGroup toggleGroup1 = new ToggleGroup();
   private ColorPicker colorPicker1 = new ColorPicker();
   private Label label1 = new Label();
-  public boolean mouse = false;
+  public boolean mouse = true;
+  public int x;
+  public int y;
   // Ende Attribute
   
   
@@ -43,18 +50,19 @@ public class Paint4Poor2022 extends Application {
         leinwand[x][y].setPrefWidth(pixelbreite);
         pixelStyle = grundStyle + "-fx-background-color: #" + leinwand[x][y].getFarbe().toString().substring(2)+";";
         leinwand[x][y].setStyle(pixelStyle);                      
-        if(mouse){
-          leinwand[x][y].setOnMouseEntered(
-          (event) -> {leinwand_Action(event);} 
-          );
-          root.getChildren().add(leinwand[x][y]);
-        }
+        //if(mouse){
+        leinwand[x][y].setOnMouseDragged((event)-> {leinwand_Action(event);});   
+        //}
+        //leinwand[x][y].hoverProperty().addListener((event)-> {leinwand_Action(event);});
+        
+        //leinwand[x][y].setOnAction((event)-> {leinwand_Action(event);});
+        root.getChildren().add(leinwand[x][y]);
       } 
     }
   }
   
   
-  // Das wird alles einmal beim Starten ausgeführt
+  // Das wird alles einmal beim Starten ausgefÃ¼hrt
   public void start(Stage primaryStage) { 
     root = new Pane();
     Scene scene = new Scene(root, 640, 508);
@@ -77,25 +85,92 @@ public class Paint4Poor2022 extends Application {
     // erzeugen des "Array of Button" sowie initialiseren von bild[][]
     generiereLeinwand(16,16,30);
     
+    /*
+    scene.setOnMousePressed((event) -> {
+      mouse = true;
+    });
+    scene.setOnMouseReleased((event) -> {
+      mouse = false;
+    });
+    //scene.setOnMouseDragged((event) -> {x = event.getX();y = event.getY();});
+    
+    
+    
+    //Creating the mouse event handler
+    EventHandler<javafx.scene.input.MouseEvent> pressedHandler = new EventHandler<javafx.scene.input.MouseEvent>() { 
+      @Override 
+      public void handle(javafx.scene.input.MouseEvent e) { 
+        System.out.println("Mouse Pressed"); 
+        mouse = true;
+      } 
+    };  
+    //Registering the event filter 
+    leinwand.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_PRESSED, pressedHandler);
+    
+    //Creating the mouse event handler
+    EventHandler<javafx.scene.input.MouseEvent> releasedHandler = new EventHandler<javafx.scene.input.MouseEvent>() { 
+      @Override 
+      public void handle(javafx.scene.input.MouseEvent e) { 
+        System.out.println("Mouse Released"); 
+        mouse = false;
+      } 
+    };  
+    //Registering the event filter 
+    leinwand.addEventHandler(javafx.scene.input.MouseEvent.MOUSE_RELEASED, releasedHandler);
+    */
+    
+    scene.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, new EventHandler<javafx.scene.input.MouseEvent>() {
+      @Override
+      public void handle(javafx.scene.input.MouseEvent mouseEvent) {
+        mouse = true;
+        System.out.println("mouse press detected! Bool: " + mouse);
+      }
+    });
+    
+    scene.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_RELEASED, new EventHandler<javafx.scene.input.MouseEvent>() {
+      @Override
+      public void handle(javafx.scene.input.MouseEvent mouseEvent) {
+        mouse = false;
+        System.out.println("mouse release detected! Bool: " + mouse);
+      }
+    });
+    
+    
+    
     primaryStage.setOnCloseRequest(e -> System.exit(0));
     primaryStage.setTitle("Paint4Poor2022");
     primaryStage.setScene(scene);
     primaryStage.show();
     
-    scene.setOnMousePressed(mouse = true);
-    scene.setOnMouseReleased(mouse = false);
+    
     
   } 
   // Anfang Methoden
 
-  // wenn irgendein Button der Leinwand gedrückt wird
+  // wenn irgendein Button der Leinwand gedrÃ¼ckt wird
   public void leinwand_Action(Event evt) {
     int x = ((Pixel) evt.getSource()).getX();
     int y = ((Pixel) evt.getSource()).getY();
     aktuelleFarbe = colorPicker1.getValue();
+   // if (mouse){
     leinwand[x][y].setFarbe(aktuelleFarbe);
     leinwand[x][y].setStyle(grundStyle + "-fx-background-color: #" + leinwand[x][y].getFarbe().toString().substring(2)+";"); 
     bild[x][y] = aktuelleFarbe;
+  //  }
+  } // end of button1_Action
+  
+  public void leinwand_feuern(Event evt) {
+    x = ((Pixel) evt.getSource()).getX();
+    y = ((Pixel) evt.getSource()).getY();
+    if (mouse){
+      leinwand[x][y].fire();
+    }
+  } // end of button1_Action
+  
+  public void leinwand_fire(int x, int y) {
+    if (mouse){
+      leinwand[x][y].fire();
+    }
   } // end of button1_Action
   
   // Hauptprogramm
@@ -105,4 +180,3 @@ public class Paint4Poor2022 extends Application {
   // Ende Methoden
    
 } 
-
